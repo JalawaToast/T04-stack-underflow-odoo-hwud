@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+    <!-- Child List View -->
+    <record id="view_speech_therapy_child_list" model="ir.ui.view">
+        <field name="name">speech.therapy.child.list</field>
+        <field name="model">speech.therapy.child</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="age"/>
+                <field name="parent_name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+
+    <!-- Child Form View -->
+    <record id="view_speech_therapy_child_form" model="ir.ui.view">
+        <field name="name">speech.therapy.child.form</field>
+        <field name="model">speech.therapy.child</field>
+        <field name="arch" type="xml">
+
+            <form>
+
+                <sheet>
+
+                    <!-- Basic Information -->
+                    <group string="Child Information">
+
+                        <group>
+                            <field name="name"/>
+                            <field name="date_of_birth"/>
+                            <field name="age"/>
+                        </group>
+
+                        <group>
+                            <field name="parent_name"/>
+                            <field name="parent_phone"/>
+                            <field name="active"/>
+                        </group>
+
+                    </group>
+
+
+                    <!-- Speech Information -->
+                    <notebook>
+
+                        <page string="Speech Profile">
+
+                            <group>
+                                <field name="speech_difficulty"/>
+                                <field name="therapy_goals"/>
+                            </group>
+
+                        </page>
+
+
+                        <page string="Notes">
+
+                            <field name="notes"/>
+
+                        </page>
+
+                    </notebook>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+
+    <!-- Child Action -->
+    <record id="action_speech_therapy_child" model="ir.actions.act_window">
+
+        <field name="name">Children</field>
+
+        <field name="res_model">speech.therapy.child</field>
+
+        <field name="view_mode">list,form</field>
+
+    </record>
+
+</odoo>

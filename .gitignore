@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+env/
+speech_ai_env/
+
+# Odoo
+*.log
+
+# Local configuration
+*.conf
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+
+# AI/model files
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# Temporary files
+*.tmp
+*.temp

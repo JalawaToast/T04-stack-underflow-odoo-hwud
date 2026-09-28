@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_speech_therapy_child_user,speech.therapy.child user,model_speech_therapy_child,base.group_user,1,1,1,1
+access_speech_therapy_exercise_user,speech.therapy.exercise user,model_speech_therapy_exercise,base.group_user,1,1,1,1
+access_speech_therapy_session_user,speech.therapy.session user,model_speech_therapy_session,base.group_user,1,1,1,1

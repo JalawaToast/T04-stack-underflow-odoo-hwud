@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+    <menuitem
+        id="menu_speech_therapy_root"
+        name="Speech Therapy"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_speech_therapy_children"
+        name="Children"
+        parent="menu_speech_therapy_root"
+        action="action_speech_therapy_child"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_speech_therapy_exercises"
+        name="Exercises"
+        parent="menu_speech_therapy_root"
+        action="action_speech_therapy_exercise"
+        sequence="20"/>
+
+    <menuitem
+        id="menu_speech_therapy_sessions"
+        name="Sessions"
+        parent="menu_speech_therapy_root"
+        action="action_speech_therapy_session"
+        sequence="30"/>
+        
+</odoo>
