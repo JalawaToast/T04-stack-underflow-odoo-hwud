@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Speech Practice Assistant</title>
+<style>
+:root{
+  --bg:#f7f7fb; --card:#ffffff; --ink:#1c1c26; --sub:#6b6b7b;
+  --accent:#5b5bd6; --accent2:#22c07a; --bad:#e5484d; --line:#e6e6ef;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131318; --card:#1c1c24; --ink:#f0f0f5; --sub:#9797a8;
+    --accent:#8b8bf0; --accent2:#34d399; --bad:#f87171; --line:#2c2c38;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131318; --card:#1c1c24; --ink:#f0f0f5; --sub:#9797a8;
+  --accent:#8b8bf0; --accent2:#34d399; --bad:#f87171; --line:#2c2c38;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  display:flex; justify-content:center; padding:24px 16px;
+}
+.wrap{width:100%; max-width:640px;}
+h1{font-size:1.4rem; margin:0 0 4px;}
+.sub{color:var(--sub); font-size:.9rem; margin:0 0 20px;}
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:16px;
+  padding:20px; margin-bottom:16px;
+}
+.words{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:4px;}
+.sentenceRow{display:flex; gap:8px; margin-bottom:14px;}
+#sentenceInput{
+  flex:1; padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+  background:var(--bg); color:var(--ink); font-size:.95rem;
+}
+button.small{padding:8px 14px; font-size:.9rem;}
+.navRow{display:flex; align-items:center; justify-content:center; gap:14px;}
+.progress{color:var(--sub); font-size:.85rem; min-width:70px; text-align:center;}
+.wbtn{
+  border:1px solid var(--line); background:transparent; color:var(--ink);
+  padding:8px 14px; border-radius:999px; font-size:.95rem; cursor:pointer;
+}
+.wbtn.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+.target{font-size:2rem; font-weight:700; text-align:center; margin:10px 0 4px;}
+.phonemes{display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-bottom:16px;}
+.ph{
+  background:var(--bg); border:1px solid var(--line); border-radius:8px;
+  padding:4px 10px; font-family:monospace; font-size:1rem;
+}
+.ph.active{background:var(--accent); color:#fff; border-color:var(--accent);}
+.mouthWrap{display:flex; justify-content:center; margin:8px 0 16px;}
+svg{width:140px; height:140px;}
+.controls{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+.speedRow{display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center;}
+.speedLabel{color:var(--sub); font-size:.85rem;}
+.speedBtn{
+  border:1px solid var(--line); background:transparent; color:var(--ink);
+  padding:6px 14px; border-radius:999px; font-size:.85rem; cursor:pointer;
+}
+.speedBtn.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+button.action{
+  background:var(--accent); color:#fff; border:none; border-radius:10px;
+  padding:12px 20px; font-size:1rem; cursor:pointer;
+}
+button.action:disabled{opacity:.5; cursor:default;}
+button.ghost{
+  background:transparent; color:var(--ink); border:1px solid var(--line);
+  border-radius:10px; padding:12px 20px; font-size:1rem; cursor:pointer;
+}
+.result{margin-top:16px; text-align:center; font-size:1.05rem; min-height:1.4em;}
+.result.good{color:var(--accent2); font-weight:600;}
+.result.bad{color:var(--bad); font-weight:600;}
+.heard{color:var(--sub); font-size:.9rem; margin-top:4px;}
+.note{color:var(--sub); font-size:.8rem; text-align:center; margin-top:10px;}
+.tally{display:flex; justify-content:center; gap:18px; margin-top:14px; font-weight:600;}
+.tally .ok{color:var(--accent2);} .tally .no{color:var(--bad);}
+.statsHead{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;}
+.statsHead h2{font-size:1.05rem; margin:0;}
+.big{display:flex; gap:10px; margin-bottom:16px;}
+.big div{flex:1; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:10px; text-align:center;}
+.big b{display:block; font-size:1.4rem;}
+.big span{color:var(--sub); font-size:.75rem;}
+.weeks{display:flex; align-items:flex-end; gap:8px; height:130px; overflow-x:auto;}
+.wk{flex:1; min-width:44px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
+.wk .bar{width:100%; display:flex; flex-direction:column; justify-content:flex-end; border-radius:6px; overflow:hidden;}
+.wk .g{background:var(--accent2);} .wk .r{background:var(--bad);}
+.wk .lbl{font-size:.7rem; color:var(--sub); margin-top:4px; white-space:nowrap;}
+.wk .num{font-size:.7rem; margin-bottom:2px;}
+.legend{color:var(--sub); font-size:.75rem; margin-top:8px; text-align:center;}
+.statBtns{display:flex; gap:8px; justify-content:center; margin-top:12px;}
+.statBtns button{padding:6px 12px; font-size:.8rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🗣️ Speech Practice Assistant</h1>
+  <p class="sub">Learn the sound → watch the mouth shape → practice out loud → get instant feedback.</p>
+
+  <div class="card">
+    <div class="sentenceRow">
+      <input id="sentenceInput" type="text" placeholder="Paste a sentence from the AI bot..." />
+      <button class="action small" id="loadSentenceBtn">Load</button>
+    </div>
+    <div class="words" id="words"></div>
+  </div>
+
+  <div class="card">
+    <div class="navRow">
+      <button class="ghost small" id="prevBtn">◀ Prev</button>
+      <span class="progress" id="progress"></span>
+      <button class="ghost small" id="nextBtn">Next ▶</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="target" id="target">—</div>
+    <div class="phonemes" id="phonemes"></div>
+    <div class="mouthWrap">
+      <svg id="mouthSvg" viewBox="0 0 140 140">
+        <ellipse cx="70" cy="70" rx="55" ry="55" fill="none" stroke="var(--line)" stroke-width="2"/>
+        <!-- teeth (top/bottom hints, only visible when mouth is open enough) -->
+        <path id="teethTop" d="M50,60 L90,60" stroke="var(--sub)" stroke-width="3" stroke-linecap="round" opacity="0"/>
+        <path id="teethBot" d="M50,80 L90,80" stroke="var(--sub)" stroke-width="3" stroke-linecap="round" opacity="0"/>
+        <!-- tongue, drawn under the lips -->
+        <path id="tonguePath" d="M60,72 Q70,72 80,72" fill="#e5484d" opacity="0"/>
+        <path id="mouthPath" d="M40,70 Q70,70 100,70" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="controls">
+      <div class="speedRow">
+        <span class="speedLabel">Speed:</span>
+        <button class="speedBtn" id="speedSlow">Slow</button>
+        <button class="speedBtn active" id="speedNormal">Normal</button>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="ghost" id="playBtn">▶ Play sound shapes</button>
+      <button class="ghost" id="hearBtn">🔊 Hear it</button>
+      <button class="action" id="micBtn">🎤 Practice</button>
+    </div>
+    <div class="tally"><span class="ok">✅ Correct: <span id="tallyOk">0</span></span><span class="no">❌ Wrong: <span id="tallyNo">0</span></span></div>
+    <div class="result" id="result"></div>
+    <div class="heard" id="heard"></div>
+    <div class="note">Mic practice needs Chrome/Edge with microphone permission.</div>
+  </div>
+
+  <div class="card">
+    <div class="statsHead"><h2>📈 Weekly progress</h2></div>
+    <div class="big">
+      <div><b id="sOk">0</b><span>Correct</span></div>
+      <div><b id="sNo">0</b><span>Wrong</span></div>
+      <div><b id="sAcc">–</b><span>Accuracy</span></div>
+    </div>
+    <div class="weeks" id="weeks"></div>
+    <div class="legend">Last 6 weeks (week starting Monday) · green = correct, red = wrong</div>
+    <div class="statBtns">
+      <button class="ghost" id="demoBtn">Load demo data</button>
+      <button class="ghost" id="resetBtn">Reset stats</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const WORDS = {
+  amazing:      { phonemes: ["ə","m","eɪ","z","ɪ","ŋ"] },
+  banana:       { phonemes: ["b","ə","n","æ","n","ə"] },
+  susceptible:  { phonemes: ["s","ə","s","ɛ","p","t","ə","b","ə","l"] },
+  entrepreneur: { phonemes: ["ɑ","n","t","r","ə","p","r","ə","n","ɜr"] }
+};
+
+// crude mouth-shape category per phoneme, for the SVG animation
+const SHAPE = {
+  "m":"closed","b":"closed","p":"closed",
+  "ə":"mid","ʌ":"mid","ɪ":"mid","ər":"mid",
+  "eɪ":"wide","i":"wide","ee":"wide",
+  "aɪ":"open","æ":"open","a":"open",
+  "oʊ":"round","u":"round","w":"round",
+  "z":"narrow","s":"narrow","ŋ":"narrow","n":"narrow",
+  "h":"open","l":"mid","ɛ":"wide","ɑ":"open","ɜr":"mid","t":"narrow","k":"narrow","f":"narrow","j":"narrow","d":"narrow"
+};
+
+const PATHS = {
+  closed: "M40,70 Q70,70 100,70",
+  mid:    "M40,68 Q70,85 100,68",
+  wide:   "M35,68 Q70,80 105,68",
+  open:   "M45,55 Q70,105 95,55",
+  round:  "M55,55 Q70,55 85,55 Q95,70 85,85 Q70,85 55,85 Q45,70 55,55",
+  narrow: "M45,70 Q70,75 95,70"
+};
+
+// tongue position category per phoneme: where the tongue does its work
+const TONGUE = {
+  "t":"tip-ridge","d":"tip-ridge","n":"tip-ridge","l":"tip-ridge","s":"tip-ridge","z":"tip-ridge",
+  "θ":"tip-teeth","ð":"tip-teeth",
+  "k":"back-raised","g":"back-raised","ŋ":"back-raised",
+  "j":"mid-raised","ʃ":"tip-ridge",
+  "m":"resting","b":"resting","p":"resting","f":"resting","h":"resting","w":"resting",
+  "ə":"resting","ʌ":"resting","ɪ":"resting","ər":"resting","eɪ":"low","i":"low","aɪ":"low",
+  "æ":"low","a":"low","oʊ":"low","u":"low"
+};
+
+// tongue SVG path per category (drawn inside the mouth, tip toward the lips)
+const TONGUE_PATHS = {
+  "resting":   { d:"M60,74 Q70,76 80,74", opacity:0 },
+  "tip-ridge": { d:"M58,58 Q70,50 82,58 L82,68 Q70,72 58,68 Z", opacity:1 },
+  "tip-teeth": { d:"M55,62 Q70,50 85,62 L85,72 Q70,66 55,72 Z", opacity:1 },
+  "back-raised": { d:"M55,85 Q70,60 85,85 L85,90 Q70,80 55,90 Z", opacity:1 },
+  "mid-raised": { d:"M58,72 Q70,58 82,72 L82,80 Q70,74 58,80 Z", opacity:1 },
+  "low":       { d:"M60,90 Q70,92 80,90", opacity:0 }
+};
+
+// --- Fallback phonemizer for words not in our hand-built dictionary ---
+// Not real IPA - just enough letter/digraph groupings to drive a plausible mouth shape.
+const DIGRAPHS = ['th','sh','ch','ph','ng','wh','ck'];
+function graphemes(word){
+  word = word.toLowerCase().replace(/[^a-z]/g,'');
+  const out = [];
+  let i = 0;
+  while(i < word.length){
+    let hit = null;
+    for(const dg of DIGRAPHS){
+      if(word.substr(i, dg.length) === dg){ hit = dg; break; }
+    }
+    if(hit){ out.push(hit); i += hit.length; }
+    else { out.push(word[i]); i += 1; }
+  }
+  return out;
+}
+const LETTER_SHAPE = {
+  m:'closed', b:'closed', p:'closed',
+  a:'open', e:'wide', i:'wide', o:'round', u:'round', y:'wide',
+  s:'narrow', z:'narrow', t:'narrow', d:'narrow', n:'narrow', l:'mid', r:'mid',
+  k:'narrow', g:'narrow', h:'open', f:'narrow', v:'narrow', w:'round', j:'narrow', c:'narrow', q:'round', x:'narrow',
+  th:'narrow', sh:'wide', ch:'wide', ph:'narrow', ng:'narrow', wh:'round', ck:'narrow'
+};
+const LETTER_TONGUE = {
+  t:'tip-ridge', d:'tip-ridge', n:'tip-ridge', l:'tip-ridge', s:'tip-ridge', z:'tip-ridge',
+  th:'tip-teeth', ch:'tip-ridge', sh:'tip-ridge', ck:'back-raised',
+  k:'back-raised', g:'back-raised', ng:'back-raised', c:'back-raised', q:'back-raised',
+  j:'mid-raised', y:'mid-raised', r:'mid-raised', x:'tip-ridge',
+  m:'resting', b:'resting', p:'resting', f:'resting', v:'resting', h:'resting', w:'resting', wh:'resting', ph:'resting',
+  a:'low', e:'resting', i:'resting', o:'low', u:'low'
+};
+function getPhonemes(word){
+  const w = word.toLowerCase();
+  if(WORDS[w]) return WORDS[w].phonemes;
+  return graphemes(w);
+}
+function shapeFor(p){ return SHAPE[p] || LETTER_SHAPE[p] || 'mid'; }
+function tongueFor(p){ return TONGUE[p] || LETTER_TONGUE[p] || 'resting'; }
+
+let queue = [];   // words currently loaded, from a preset click or a typed sentence
+let qIndex = 0;
+
+const wordsEl = document.getElementById('words');
+const targetEl = document.getElementById('target');
+const phonemesEl = document.getElementById('phonemes');
+const mouthPath = document.getElementById('mouthPath');
+const playBtn = document.getElementById('playBtn');
+const micBtn = document.getElementById('micBtn');
+const resultEl = document.getElementById('result');
+const heardEl = document.getElementById('heard');
+const sentenceInput = document.getElementById('sentenceInput');
+const loadSentenceBtn = document.getElementById('loadSentenceBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const progressEl = document.getElementById('progress');
+
+let currentWord = null;
+let speed = 'normal'; // 'slow' | 'normal'
+const SPEED_DELAY = { slow: 900, normal: 480 };
+const SPEED_RATE  = { slow: 0.55, normal: 0.95 };
+
+const speedSlowBtn = document.getElementById('speedSlow');
+const speedNormalBtn = document.getElementById('speedNormal');
+speedSlowBtn.onclick = () => setSpeed('slow');
+speedNormalBtn.onclick = () => setSpeed('normal');
+function setSpeed(s){
+  speed = s;
+  speedSlowBtn.classList.toggle('active', s === 'slow');
+  speedNormalBtn.classList.toggle('active', s === 'normal');
+}
+
+function renderWordButtons(){
+  Object.keys(WORDS).forEach(w=>{
+    const b = document.createElement('button');
+    b.className = 'wbtn';
+    b.textContent = w;
+    b.onclick = ()=> loadQueue([w]);
+    b.dataset.word = w;
+    wordsEl.appendChild(b);
+  });
+}
+
+// Load a fresh list of words to step through (a single preset word, or a whole sentence)
+function loadQueue(words){
+  queue = words;
+  qIndex = 0;
+  showCurrent();
+}
+
+function loadSentence(text){
+  const words = text
+    .toLowerCase()
+    .split(/[^a-z']+/)
+    .filter(w => w.length > 0);
+  if(words.length === 0) return;
+  sentenceInput.value = '';
+  document.querySelectorAll('.wbtn').forEach(b => b.classList.remove('active'));
+  loadQueue(words);
+}
+loadSentenceBtn.onclick = () => loadSentence(sentenceInput.value);
+sentenceInput.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') loadSentence(sentenceInput.value);
+});
+
+function showCurrent(){
+  const w = queue[qIndex];
+  currentWord = w;
+  targetEl.textContent = w.toUpperCase();
+  resultEl.textContent = '';
+  resultEl.className = 'result';
+  heardEl.textContent = '';
+  document.querySelectorAll('.wbtn').forEach(b=>{
+    b.classList.toggle('active', queue.length === 1 && b.dataset.word === w);
+  });
+  const ph = getPhonemes(w);
+  phonemesEl.innerHTML = '';
+  ph.forEach((p,i)=>{
+    const s = document.createElement('span');
+    s.className = 'ph';
+    s.textContent = '/' + p + '/';
+    s.dataset.i = i;
+    phonemesEl.appendChild(s);
+  });
+  setMouth('closed', 'resting');
+  progressEl.textContent = queue.length > 1 ? `${qIndex+1} / ${queue.length}` : '';
+  prevBtn.disabled = qIndex <= 0;
+  nextBtn.disabled = qIndex >= queue.length - 1;
+}
+prevBtn.onclick = () => { if(qIndex > 0){ qIndex--; showCurrent(); } };
+nextBtn.onclick = () => { if(qIndex < queue.length - 1){ qIndex++; showCurrent(); } };
+
+const tonguePath = document.getElementById('tonguePath');
+const teethTop = document.getElementById('teethTop');
+const teethBot = document.getElementById('teethBot');
+
+function setMouth(shape, tongueCat){
+  mouthPath.setAttribute('d', PATHS[shape] || PATHS.mid);
+  const t = TONGUE_PATHS[tongueCat] || TONGUE_PATHS.resting;
+  tonguePath.setAttribute('d', t.d);
+  tonguePath.setAttribute('opacity', t.opacity);
+  const showTeeth = (shape === 'wide' || shape === 'narrow') ? 1 : 0;
+  teethTop.setAttribute('opacity', showTeeth);
+  teethBot.setAttribute('opacity', showTeeth);
+}
+
+async function playShapes(){
+  if(!currentWord) return;
+  const ph = getPhonemes(currentWord);
+  const chips = phonemesEl.querySelectorAll('.ph');
+  for(let i=0;i<ph.length;i++){
+    chips.forEach(c=>c.classList.remove('active'));
+    chips[i].classList.add('active');
+    setMouth(shapeFor(ph[i]), tongueFor(ph[i]));
+    await new Promise(r=>setTimeout(r, SPEED_DELAY[speed]));
+  }
+  chips.forEach(c=>c.classList.remove('active'));
+  setMouth('closed', 'resting');
+}
+playBtn.onclick = playShapes;
+
+// --- Speech recognition practice ---
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+function normalize(s){
+  return s.toLowerCase().replace(/[^a-z]/g,'');
+}
+
+micBtn.onclick = () => {
+  if(!currentWord){
+    resultEl.textContent = 'Pick a word first';
+    resultEl.className = 'result bad';
+    return;
+  }
+  if(!SR){
+    resultEl.textContent = "Speech recognition isn't supported in this browser";
+    resultEl.className = 'result bad';
+    return;
+  }
+  resultEl.textContent = 'Listening…';
+  resultEl.className = 'result';
+  heardEl.textContent = '';
+  micBtn.disabled = true;
+
+  const rec = new SR();
+  rec.lang = 'en-US';
+  rec.maxAlternatives = 3;
+
+  rec.onresult = (e) => {
+    const transcript = e.results[0][0].transcript;
+    heardEl.textContent = 'Heard: "' + transcript + '"';
+    const said = normalize(transcript);
+    const target = normalize(currentWord);
+    if(said.includes(target)){
+      recordAttempt(true);
+      resultEl.textContent = '🟢 Nice! That matched.';
+      resultEl.className = 'result good';
+      playShapes();
+    } else {
+      recordAttempt(false);
+      resultEl.textContent = '🔴 Not quite — try again.';
+      resultEl.className = 'result bad';
+    }
+  };
+  rec.onerror = (e) => {
+    resultEl.textContent = 'Mic error: ' + e.error;
+    resultEl.className = 'result bad';
+  };
+  rec.onend = () => { micBtn.disabled = false; };
+  try{ rec.start(); } catch(err){
+    resultEl.textContent = 'Could not start mic';
+    resultEl.className = 'result bad';
+    micBtn.disabled = false;
+  }
+};
+
+const hearBtn = document.getElementById('hearBtn');
+hearBtn.onclick = () => {
+  if(!currentWord) return;
+  if(!('speechSynthesis' in window)){
+    resultEl.textContent = "Hearing isn't supported in this browser";
+    resultEl.className = 'result bad';
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(currentWord);
+  utter.rate = SPEED_RATE[speed];
+  utter.lang = 'en-US';
+  window.speechSynthesis.speak(utter);
+  playShapes();
+};
+
+// --- Stats: attempts saved in this browser (localStorage), grouped by week ---
+const STORE_KEY = 'speechPractice.attempts.v1';
+let attempts = [];
+try{ attempts = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }catch(e){ attempts = []; }
+function saveAttempts(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(attempts)); }catch(e){}
+}
+function recordAttempt(ok){
+  attempts.push({ t: Date.now(), ok: !!ok, w: currentWord });
+  saveAttempts();
+  renderStats();
+}
+function weekStart(ts){
+  const d = new Date(ts);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // back to Monday
+  return d.getTime();
+}
+function renderStats(){
+  const ok = attempts.filter(a => a.ok).length;
+  const no = attempts.length - ok;
+  document.getElementById('tallyOk').textContent = ok;
+  document.getElementById('tallyNo').textContent = no;
+  document.getElementById('sOk').textContent = ok;
+  document.getElementById('sNo').textContent = no;
+  document.getElementById('sAcc').textContent = attempts.length ? Math.round(ok / attempts.length * 100) + '%' : '–';
+
+  const thisWeek = new Date(weekStart(Date.now()));
+  const cols = [];
+  for(let i = 5; i >= 0; i--){
+    const d = new Date(thisWeek);
+    d.setDate(d.getDate() - 7 * i);
+    cols.push({ start: d.getTime(), label: d.toLocaleDateString(undefined, {month:'short', day:'numeric'}), ok:0, no:0 });
+  }
+  attempts.forEach(a => {
+    const c = cols.find(c => c.start === weekStart(a.t));
+    if(c){ a.ok ? c.ok++ : c.no++; }
+  });
+  const max = Math.max(1, ...cols.map(c => c.ok + c.no));
+  document.getElementById('weeks').innerHTML = cols.map(c => {
+    const gh = c.ok / max * 90, rh = c.no / max * 90;
+    return `<div class="wk"><div class="num">${c.ok + c.no || ''}</div>
+      <div class="bar"><div class="r" style="height:${rh}px"></div><div class="g" style="height:${gh}px"></div></div>
+      <div class="lbl">${c.label}</div></div>`;
+  }).join('');
+}
+document.getElementById('resetBtn').onclick = () => { attempts = []; saveAttempts(); renderStats(); };
+document.getElementById('demoBtn').onclick = () => {
+  const now = new Date(weekStart(Date.now()));
+  const demo = [];
+  for(let i = 5; i >= 1; i--){
+    const total = 6 + Math.floor(Math.random() * 8);
+    const acc = 0.4 + (5 - i) * 0.1; // improves week over week
+    for(let k = 0; k < total; k++){
+      const d = new Date(now);
+      d.setDate(d.getDate() - 7 * i + (k % 7));
+      demo.push({ t: d.getTime() + 43200000, ok: Math.random() < acc, w: 'demo' });
+    }
+  }
+  attempts = attempts.concat(demo);
+  saveAttempts();
+  renderStats();
+};
+
+renderWordButtons();
+loadQueue(['amazing']);
+renderStats();
+</script>
+</body>
+</html>
